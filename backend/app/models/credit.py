@@ -8,8 +8,8 @@ class Credit(Base):
     __tablename__ = "credit"
     
     credit_id = Column(Integer, primary_key=True, autoincrement=True)
-    movie_id = Column(Integer, ForeignKey("movie.movie_id", ondelete="CASCADE"), nullable=False)
-    person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE"), nullable=False)
+    movie_id = Column(Integer, ForeignKey("movie.movie_id", ondelete="CASCADE"), nullable=False, index=True)
+    person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE"), nullable=False, index=True)
     role = Column(String(20), nullable=False)
     character_name = Column(String, nullable=True)
     

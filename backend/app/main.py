@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
 from app.models import Movie
+from app.schemas.movie import MovieRead
 
 app = FastAPI()
 
@@ -39,16 +40,8 @@ def root():
     """
     return {"message": "Movie Grid API is running"}
 
-@app.get("/movies/")
+@app.get("/movies/", response_model=list[MovieRead])
 def list_movies(db: Session = Depends(get_db)):
-    """Retorna las primeras 10 películas de la base de datos.
-
-    Args:
-        db (Session): Sesión de base de datos (inyectada por FastAPI).
-
-    Returns:
-        list: Lista de objetos Movie (serializados automáticamente por FastAPI).
-            Si no hay películas, retorna una lista vacía.
-    """
+    """Retorna las primeras 10 películas de la base de datos."""
     movies = db.query(Movie).limit(10).all()
     return movies
