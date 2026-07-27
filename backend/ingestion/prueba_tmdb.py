@@ -1,53 +1,72 @@
 import httpx
 from app.core.config import settings
 from app.core.database import SessionLocal
-from app.models import Movie, Genre, MovieGenre
+from app.models import Movie, Genre, MovieGenre, Person, Credit
 
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
+MAX_CAST_PER_MOVIE = 10
+
 
 def get_popular_movies_page1():
     headers = {"Authorization": f"Bearer {settings.TMDB_API_KEY}"}
     response = httpx.get(f"{TMDB_BASE_URL}/movie/popular", headers=headers)
     response.raise_for_status()
+    return response.json()["results"]
+
+
+def get_movie_credits(movie_id):
+    headers = {"Authorization": f"Bearer {settings.TMDB_API_KEY}"}
+    response = httpx.get(f"{TMDB_BASE_URL}/movie/{movie_id}/credits", headers=headers)
+    response.raise_for_status()
     return response.json()
 
-def get_genre_list():
-    headers = {"Authorization": f"Bearer {settings.TMDB_API_KEY}"}
-    response = httpx.get(f"{TMDB_BASE_URL}/genre/movie/list", headers=headers)
-    response.raise_for_status()
-    return response.json()["genres"]
 
-data = get_popular_movies_page1()
-primera = data["results"][0]
-generos_tmdb = get_genre_list()
+def guardar_persona(db, person_id, full_name):
+    persona = db.get(Person, person_id)
+    if not persona:
+        persona = Person(person_id=person_id, full_name=full_name)
+        db.add(persona)
+        db.commit()
+    return persona
+
+
+def guardar_credito(db, movie_id, person_id, role, character_name=None):
+    existente = (
+        db.query(Credit) # query? 
+        .filter_by(movie_id=movie_id, person_id=person_id, role=role)
+        .first()
+    )
+    if not existente:
+        db.add(Credit(movie_id=movie_id, person_id=person_id, role=role, character_name=character_name))
+        db.commit()
+
 
 db = SessionLocal()
 
+peliculas = get_popular_movies_page1()
+primera = peliculas[0]
+
 pelicula = db.get(Movie, primera["id"])
-if not pelicula:
-    pelicula = Movie(
-        movie_id=primera["id"],
-        title=primera["title"],
-        release_year=int(primera["release_date"][:4]),
-    )
-    db.add(pelicula)
-    db.commit()
-    print(f"Película guardada: {pelicula.title}")
-else:
-    print(f"Película ya existía: {pelicula.title}")
+print(f"Trayendo créditos de: {pelicula.title}")
 
-for g in generos_tmdb:
-    genero_existente = db.get(Genre, g["id"])
-    if not genero_existente:
-        db.add(Genre(genre_id=g["id"], name=g["name"]))
-db.commit()
-print("Tabla de géneros actualizada.")
+credits_data = get_movie_credits(primera["id"])
 
-for genre_id in primera["genre_ids"]:
-    vinculo_existente = db.get(MovieGenre, {"movie_id": pelicula.movie_id, "genre_id": genre_id})
-    if not vinculo_existente:
-        db.add(MovieGenre(movie_id=pelicula.movie_id, genre_id=genre_id))
-db.commit()
-print(f"Géneros vinculados: {primera['genre_ids']}")
+# 1. Reparto: los primeros N actores, ordenados por 'order' (orden de aparición en los créditos)
+cast_ordenado = sorted(credits_data["cast"], key=lambda c: c.get("order"))
+top_cast = cast_ordenado[:MAX_CAST_PER_MOVIE]
+
+for actor in top_cast:
+    persona = guardar_persona(db, actor["id"], actor["name"])
+    guardar_credito(db, pelicula.movie_id, persona.person_id, "ACTOR", actor.get("character"))
+    print(f"  Actor guardado: {actor['name']} como {actor.get('character')}")
+
+# 2. Director: filtramos el crew por job == "Director"
+directores = [c for c in credits_data["crew"] if c["job"] == "Director"]
+
+for director in directores:
+    persona = guardar_persona(db, director["id"], director["name"])
+    guardar_credito(db, pelicula.movie_id, persona.person_id, "DIRECTOR")
+    print(f"  Director guardado: {director['name']}")
 
 db.close()
+print("Créditos guardados.")
