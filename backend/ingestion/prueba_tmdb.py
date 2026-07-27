@@ -1,5 +1,7 @@
 import httpx
 from app.core.config import settings
+from app.core.database import SessionLocal
+from app.models import Movie
 
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 
@@ -10,5 +12,20 @@ def get_popular_movies_page1():
     return response.json()
 
 data = get_popular_movies_page1()
-print(f"Total de resultados: {data['total_results']}")
-print(f"Primera película: {data['results'][0]['title']}")
+primera = data["results"][0]
+
+print(f"Guardando: {primera['title']} ({primera['release_date']})")
+
+db = SessionLocal()
+
+nueva_pelicula = Movie(
+    movie_id=primera["id"],
+    title=primera["title"],
+    release_year=int(primera["release_date"][:4]),
+)
+
+db.add(nueva_pelicula)
+db.commit()
+
+print("Guardada correctamente.")
+db.close()
