@@ -1,8 +1,8 @@
-"""Módulo de conexión y gestión de la base de datos.
-
-Provee el engine, la fábrica de sesiones y la clase base para modelos ORM.
 """
+Database connection and management module.
 
+It provides the engine, the session factory and the base class for ORM models.
+"""
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker

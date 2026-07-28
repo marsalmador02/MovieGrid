@@ -1,13 +1,16 @@
-"""Esquemas Pydantic para la entidad Movie. Necesario para la validación de datos y la
-serialización/deserialización de objetos."""
+"""
+Pydantic schemas for the Movie entity. Required for data validation and the
+serialization/deserialization of objects.
+"""
 
 from pydantic import BaseModel, ConfigDict
 
 class MovieRead(BaseModel):
-    """Esquema para leer una película (respuesta de la API)."""
+    """
+    Schema for reading a movie (API response).
+    """
     movie_id: int
     title: str
     release_year: int
 
-    # Permite convertir objetos SQLAlchemy a Pydantic automáticamente
     model_config = ConfigDict(from_attributes=True)

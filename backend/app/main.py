@@ -1,6 +1,7 @@
-"""Punto de entrada de la API REST.
+"""
+Entry point for the REST API.
 
-Crea la aplicación FastAPI y define los endpoints iniciales de prueba.
+Creates the FastAPI application and defines the initial test endpoints.
 """
 
 from fastapi import FastAPI, Depends
@@ -12,17 +13,17 @@ from app.schemas.movie import MovieRead
 
 app = FastAPI()
 
-# Dependencia para inyección de sesión de base de datos
 def get_db():
-    """Obtiene una sesión de la base de datos.
+    """
+    Get a database session.
 
-    Esta función se usa como dependencia de FastAPI para inyectar una
-    sesión SQLAlchemy en cada endpoint que la necesite.
+    This function is used as a FastAPI dependency to inject a
+    SQLAlchemy session into every endpoint that needs it.
 
     Yields:
-        Session: Sesión de base de datos.
+        Session: Database session.
 
-    Asegura que la sesión se cierre correctamente al finalizar la petición.
+    Ensures the session is properly closed at the end of the request.
     """
     db = SessionLocal()
     try:
@@ -30,18 +31,22 @@ def get_db():
     finally:
         db.close()
 
-# Endpoints
+
 @app.get("/")
 def root():
-    """Endpoint de bienvenida para verificar que la API está activa.
+    """
+    Welcome endpoint to verify the API is active.
 
     Returns:
-        dict: Mensaje de estado de la API.
+        dict: API status message.
     """
     return {"message": "Movie Grid API is running"}
 
+
 @app.get("/movies/", response_model=list[MovieRead])
 def list_movies(db: Session = Depends(get_db)):
-    """Retorna las primeras 10 películas de la base de datos."""
+    """
+    Return the first 10 movies from the database.
+    """
     movies = db.query(Movie).limit(10).all()
     return movies

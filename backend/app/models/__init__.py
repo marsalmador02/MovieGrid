@@ -1,6 +1,7 @@
-"""Inicialización del paquete de modelos ORM.
+"""
+Initializing the ORM model package.
 
-Exporta los modelos para facilitar su importación desde otros módulos.
+Exports the models to make it easier to import them from other modules.
 """
 
 from app.models.movie import Movie

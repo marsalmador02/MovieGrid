@@ -1,5 +1,3 @@
-"""Modelo ORM para la tabla 'credit'."""
-
 from sqlalchemy import Column, Integer, String, ForeignKey, CheckConstraint, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.core.database import Base

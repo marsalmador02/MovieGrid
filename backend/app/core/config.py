@@ -1,6 +1,7 @@
-"""Módulo de configuración de la aplicación.
+"""
+Application configuration module.
 
-Carga variables de entorno y provee un objeto de configuración centralizado.
+Loads environment variables and provides a centralized configuration object.
 """
 import os
 from dotenv import load_dotenv

@@ -4,78 +4,78 @@ from app.core.database import SessionLocal
 from app.models import Credit, Person
 
 
-def obtener_pool_de_personas(db, minimo_creditos=5):
-    """Person_id con al menos N créditos, para asegurar que tengan
-    suficientes conexiones como para ser un buen eje de grid."""
-    resultado = (
-        db.query(Credit.person_id, func.count(Credit.movie_id).label("num_creditos"))
+def get_person_pool(db, min_credits=5):
+    """Returns person IDs with at least N credits, to ensure they have
+    enough connections to be a good grid axis."""
+    result = (
+        db.query(Credit.person_id, func.count(Credit.movie_id).label("num_credits"))
         .group_by(Credit.person_id)
-        .having(func.count(Credit.movie_id) >= minimo_creditos)
+        .having(func.count(Credit.movie_id) >= min_credits)
         .all()
     )
-    return [r[0] for r in resultado]
+    return [r[0] for r in result]
 
 
-def personas_conectadas_a_persona(db, person_id):
-    """Personas que han trabajado con person_id (comparten alguna película)."""
-    peliculas_de_la_persona = (
+def get_connected_people_to_person(db, person_id):
+    """Returns people who have worked with person_id (share at least one movie)."""
+    person_movies = (
         db.query(Credit.movie_id)
         .filter(Credit.person_id == person_id)
         .scalar_subquery()
     )
-    resultado = (
+    result = (
         db.query(Credit.person_id)
-        .filter(Credit.movie_id.in_(peliculas_de_la_persona))
+        .filter(Credit.movie_id.in_(person_movies))
         .filter(Credit.person_id != person_id)
         .distinct()
         .all()
     )
-    return [r[0] for r in resultado]
+    return [r[0] for r in result]
 
 
-def generar_grid_solo_personas(db, pool, max_intentos=200):
-    """Elige 3 personas para filas y 3 para columnas, comprobando que
-    las 9 intersecciones tengan al menos una respuesta válida."""
+def generate_people_only_grid(db, pool, max_attempts=200):
+    """Picks 3 people for rows and 3 for columns, checking that
+    all 9 intersections have at least one valid answer."""
 
-    for intento in range(max_intentos):
-        elegidos = random.sample(pool, 6)
-        filas, columnas = elegidos[:3], elegidos[3:]
+    for attempt in range(max_attempts):
+        selected = random.sample(pool, 6)
+        rows, columns = selected[:3], selected[3:]
 
-        conectados = {
-            persona_id: personas_conectadas_a_persona(db, persona_id)
-            for persona_id in elegidos
+        connected = {
+            person_id: get_connected_people_to_person(db, person_id)
+            for person_id in selected
         }
 
-        grid_valido = True
-        respuestas_grid = {}
+        valid_grid = True
+        grid_intersections = {}
 
-        for fila in filas:
-            for columna in columnas:
-                interseccion = set(conectados[fila]).intersection(conectados[columna])
-                if not interseccion:
-                    grid_valido = False
+        for row in rows:
+            for col in columns:
+                intersection = set(connected[row]).intersection(connected[col])
+                if not intersection:
+                    valid_grid = False
                     break
-                respuestas_grid[(fila, columna)] = interseccion
-            if not grid_valido:
+                grid_intersections[(row, col)] = intersection
+            if not valid_grid:
                 break
 
-        if grid_valido:
-            print(f"Grid válido encontrado en el intento {intento + 1}")
-            return filas, columnas, respuestas_grid
+        if valid_grid:
+            print(f"Valid grid found on attempt {attempt + 1}")
+            return rows, columns, grid_intersections
 
-    raise RuntimeError(f"No se encontró un grid válido tras {max_intentos} intentos")
+    raise RuntimeError(f"No valid grid found after {max_attempts} attempts")
 
 
 db = SessionLocal()
 
-pool = obtener_pool_de_personas(db, minimo_creditos=5)
-print(f"Pool de candidatos: {len(pool)} personas")
+pool = get_person_pool(db, min_credits=5)
+print(f"Candidate pool: {len(pool)} people")
 
-filas, columnas, respuestas = generar_grid_solo_personas(db, pool)
+rows, columns, intersections = generate_people_only_grid(db, pool)
 
-nombres = {p.person_id: p.full_name for p in db.query(Person).filter(Person.person_id.in_(filas + columnas))}
+names = {p.person_id: p.full_name for p in db.query(Person).filter(Person.person_id.in_(rows + columns))}
 
-print("\nFilas:   ", [nombres[f] for f in filas])
-print("Columnas:", [nombres[c] for c in columnas])
+print("\nRows:   ", [names[r] for r in rows])
+print("Columns:", [names[c] for c in columns])
 
 db.close()

@@ -1,5 +1,3 @@
-"""Modelo ORM para la tabla 'movie_genre'."""
-
 from sqlalchemy import Column, Integer, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from app.core.database import Base
