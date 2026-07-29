@@ -64,18 +64,3 @@ def generate_people_only_grid(db, pool, max_attempts=200):
             return rows, columns, grid_intersections
 
     raise RuntimeError(f"No valid grid found after {max_attempts} attempts")
-
-
-db = SessionLocal()
-
-pool = get_person_pool(db, min_credits=5)
-print(f"Candidate pool: {len(pool)} people")
-
-rows, columns, intersections = generate_people_only_grid(db, pool)
-
-names = {p.person_id: p.full_name for p in db.query(Person).filter(Person.person_id.in_(rows + columns))}
-
-print("\nRows:   ", [names[r] for r in rows])
-print("Columns:", [names[c] for c in columns])
-
-db.close()

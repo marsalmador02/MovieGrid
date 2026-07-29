@@ -7,9 +7,10 @@ Creates the FastAPI application and defines the initial test endpoints.
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 
-from app.core.database import SessionLocal
+from app.core.database import SessionLocal, get_db
 from app.models import Movie
 from app.schemas.movie import MovieRead
+from app.api.v1.routes_grid import router as grid_router
 
 app = FastAPI()
 
@@ -50,3 +51,5 @@ def list_movies(db: Session = Depends(get_db)):
     """
     movies = db.query(Movie).limit(10).all()
     return movies
+
+app.include_router(grid_router, prefix="/api/v1")
