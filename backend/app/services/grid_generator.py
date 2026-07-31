@@ -1,7 +1,7 @@
 import random
+import uuid
 from sqlalchemy import func
-from app.core.database import SessionLocal
-from app.models import Credit, Person
+from app.models import Credit
 
 
 def get_person_pool(db, min_credits=5):
@@ -64,3 +64,17 @@ def generate_people_only_grid(db, pool, max_attempts=200):
             return rows, columns, grid_intersections
 
     raise RuntimeError(f"No valid grid found after {max_attempts} attempts")
+
+active_grids: dict[str, dict] = {} 
+
+def create_and_store_grid(db, min_credits: int = 5) -> str:
+    pool = get_person_pool(db, min_credits=min_credits)
+    rows, columns, intersections = generate_people_only_grid(db, pool)
+
+    grid_id = str(uuid.uuid4())
+    active_grids[grid_id] = {
+        "rows": rows,
+        "columns": columns,
+        "intersections": intersections,
+    }
+    return grid_id
