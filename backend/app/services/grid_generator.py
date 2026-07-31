@@ -1,3 +1,8 @@
+"""
+Core grid-generation logic. Builds a solvable 3x3 grid of people (actors/directors)
+and keeps track of generated grids so guesses can later be validated against them.
+"""
+
 import random
 import uuid
 from sqlalchemy import func
@@ -68,6 +73,7 @@ def generate_people_only_grid(db, pool, max_attempts=200):
 active_grids: dict[str, dict] = {} 
 
 def create_and_store_grid(db, min_credits: int = 5) -> str:
+    """Generates a new grid and stores it in 'active_grids'."""
     pool = get_person_pool(db, min_credits=min_credits)
     rows, columns, intersections = generate_people_only_grid(db, pool)
 

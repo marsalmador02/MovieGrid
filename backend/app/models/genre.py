@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class Genre(Base):
+    """A TMDB movie genre."""
     __tablename__ = "genre"
     
     genre_id = Column(Integer, primary_key=True, autoincrement=False)

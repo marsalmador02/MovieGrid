@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class MovieGenre(Base):
+    """Many-to-many association between Movie and Genre."""
     __tablename__ = "movie_genre"
 
     movie_id = Column(Integer, ForeignKey("movie.movie_id", ondelete="CASCADE"), primary_key=True)

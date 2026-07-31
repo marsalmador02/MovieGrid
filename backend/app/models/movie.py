@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class Movie(Base):
+    """A movie ingested from TMDB, identified by TMDB's own movie ID."""
     __tablename__ = 'movie'
 
     movie_id = Column(Integer, primary_key=True, autoincrement=False)

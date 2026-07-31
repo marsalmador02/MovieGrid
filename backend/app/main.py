@@ -1,19 +1,19 @@
 """
 Entry point for the REST API.
 
-Creates the FastAPI application and defines the initial test endpoints.
+Creates the FastAPI application, configures CORS and registers all routers.
 """
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.models import Movie
-from app.schemas.movie import MovieRead
 from app.api.v1.routes_grid import router as grid_router
 
-app = FastAPI()
+app = FastAPI(
+    title="MovieGrid API",
+    description="Backend for MovieGrid, a movie-trivia grid game.",
+    version="0.1.0",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,23 +22,11 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-@app.get("/")
-def root():
-    """
-    Welcome endpoint to verify the API is active.
 
-    Returns:
-        dict: API status message.
-    """
+@app.get("/", summary="Health check")
+def root():
+    """Simple endpoint to verify the API is running."""
     return {"message": "Movie Grid API is running"}
 
-
-@app.get("/movies/", response_model=list[MovieRead])
-def list_movies(db: Session = Depends(get_db)):
-    """
-    Return the first 10 movies from the database.
-    """
-    movies = db.query(Movie).limit(10).all()
-    return movies
 
 app.include_router(grid_router, prefix="/api/v1")

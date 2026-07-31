@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class Credit(Base):
+    """Links a Person to a Movie with a role (ACTOR or DIRECTOR)."""
     __tablename__ = "credit"
 
     credit_id = Column(Integer, primary_key=True, autoincrement=True)

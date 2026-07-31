@@ -1,3 +1,5 @@
+"""Endpoints for generating and playing a MovieGrid puzzle."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -9,7 +11,16 @@ from app.services.grid_generator import create_and_store_grid, active_grids
 router = APIRouter(prefix="/grid", tags=["grid"])
 
 
-@router.get("/new", response_model=GridResponse)
+@router.get(
+    "/new",
+    response_model=GridResponse,
+    summary="Generate a new grid",
+    description=(
+        "Generates a 3x3 grid of actors/directors where every row/column intersection "
+        "is guaranteed to have at least one valid answer, stores it server-side and "
+        "returns the row/column names."
+    ),
+)
 def new_grid(db: Session = Depends(get_db)):
     grid_id = create_and_store_grid(db)
     grid_data = active_grids[grid_id]
@@ -24,7 +35,19 @@ def new_grid(db: Session = Depends(get_db)):
     )
 
 
-@router.post("/guess", response_model=GuessResponse)
+@router.post(
+    "/guess",
+    response_model=GuessResponse,
+    summary="Submit a guess for one cell",
+    description=(
+        "Checks whether 'guess' names a person credited on both the given row and "
+        "column for the specified grid. Matching is case-insensitive."
+    ),
+    responses={
+        404: {"description": "grid_id does not exist or has expired."},
+        400: {"description": "row_id/column_id is not part of this grid."},
+    },
+)
 def submit_guess(guess_request: GuessRequest, db: Session = Depends(get_db)):
     grid_data = active_grids.get(guess_request.grid_id)
     if grid_data is None:
