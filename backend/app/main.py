@@ -15,6 +15,13 @@ from app.api.v1.routes_grid import router as grid_router
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
 @app.get("/")
 def root():
     """
