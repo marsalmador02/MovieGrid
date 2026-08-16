@@ -38,7 +38,7 @@ alembic upgrade head
 uvicorn app.main:app --reload
 
 # Data ingestion (run once against an empty database)
-python -m ingestion.prueba_tmdb
+python -m ingestion.ingest_movies
 
 # Frontend
 cd frontend
